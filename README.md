@@ -1,5 +1,6 @@
 ## TimeSeries Projet
-file main.ipynb khi chạy chỉ cho ra dự báo 2 ngày tiếp theo được lưu trong file predictSARIMA
+file main.ipynb khi chạy chỉ cho ra dự báo 2 ngày tiếp theo được lưu trong file predictSARIMA.xlsx
+
 các file .ipynb trong thư mục test dùng để visualize quá trình
 
 ## Chú thích file DataAirTrain.xlsx
