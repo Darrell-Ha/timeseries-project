@@ -1,4 +1,7 @@
 ## TimeSeries Projet
+
+LINK_GITHUB: [github](https://github.com/Darrell-Ha/timeseries-project)
+
 file main.ipynb khi chạy chỉ cho ra dự báo 2 ngày tiếp theo được lưu trong file predictSARIMA
 các file .ipynb trong thư mục test dùng để visualize quá trình
 
