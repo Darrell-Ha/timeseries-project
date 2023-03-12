@@ -3,7 +3,9 @@ import numpy as np
 import datetime as dt
 from sklearn.linear_model import LinearRegression
 from statsmodels.tsa.api import VAR
-def subProcess(subDataFrame, step=48):
+def subProcess(subDataFrame, step=48, diffOrder=0, init= []):
+
+
     model = VAR(subDataFrame)
     sorted_order = model.select_order(50)
     lag = sorted_order.aic
@@ -16,6 +18,9 @@ def subProcess(subDataFrame, step=48):
     dateTimeIndex = pd.date_range(subDataFrame.index[-1] + pd.DateOffset(hours=1), periods=step, freq="H")
     idx = pd.Index(dateTimeIndex, name='time')
     dataFramePredicted = pd.DataFrame(predictions, index=idx, columns=subDataFrame.columns.values)
+    while(diffOrder > 0):
+        dataFramePredicted = init[diffOrder-1] + dataFramePredicted.cumsum(axis=0)
+        diffOrder -= 1
     return dataFramePredicted
 
 def processVAR():
@@ -44,12 +49,18 @@ def processVAR():
     #Fix gap in time index
     dataFrame = dataFrame.resample('H').interpolate(method='linear')
 
+    #Stationary
+    initNO = [dataFrame[['NO','NO2','NOx']].iloc[-1]]
+    initRH = [dataFrame[['RH','Temp']].iloc[-1]]
+    dataFrameNO = dataFrame[['NO','NO2','NOx']].diff().dropna()
+    dataFramePM = dataFrame[['PM-1','PM-2-5','PM-10','TSP']]
+    dataFrameRH = dataFrame[['RH','Temp']].diff().dropna()
     #Create 3 data frame then fit to 3 VAR model 
     step = 48
     listOfDataFrame = list()
-    listOfDataFrame.append(subProcess(dataFrame[['NO','NO2','NOx']], step))
-    listOfDataFrame.append(subProcess(dataFrame[['PM-1','PM-2-5','PM-10','TSP']], step))
-    listOfDataFrame.append(subProcess(dataFrame[['RH','Temp']], step))
+    listOfDataFrame.append(subProcess(dataFrameNO, step, diffOrder= 1, init= initNO))
+    listOfDataFrame.append(subProcess(dataFramePM, step))
+    listOfDataFrame.append(subProcess(dataFrameRH, step, diffOrder= 1, init= initRH))
 
     resultPrediction = pd.concat(listOfDataFrame, axis=1, ignore_index=False)
     return resultPrediction

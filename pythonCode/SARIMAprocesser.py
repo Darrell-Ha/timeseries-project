@@ -25,38 +25,19 @@ def Forecast(ARIMA_model, lastIndex, periods=48):
 def processSARIMA():
 #Read Time Series
     dataFrame = pd.read_excel("./data/DataAirTrain.xlsx",index_col='time', sheet_name="DataAirTrain")
-    dataFrame =     dataFrame[[ 'NO','NO2','NOx','PM-1','PM-2-5','PM-10','TSP','RH','Temp',
-                                'Barometer','Radiation','WindDir','SO2','Compass','CO','O3','Wind Spd',
+    dataFrame =     dataFrame[[ 'Barometer','Radiation','WindDir','SO2','Compass','CO','O3','Wind Spd',
                                 'Hướng gió','Nhiệt độ','Áp suất khí quyển','Wind Spd (sai)']].tail(1000)
     
     # Compass and Radition have specific data 
     dataFrame[['Compass']] = dataFrame[['Compass']].interpolate(method='pad')
     dataFrame[['Radiation']] = dataFrame[['Radiation']].fillna(0)
-
-    # Only NO2 is missing data too much so fill linear for other column
-    dataFrame[['NO','NOx','PM-1','PM-2-5','PM-10','TSP','RH','Temp']] = dataFrame[['NO','NOx','PM-1','PM-2-5','PM-10','TSP','RH','Temp']].interpolate(method='linear')
     dataFrame[['WindDir','SO2','CO','O3','Wind Spd']] = dataFrame[['WindDir','SO2','CO','O3','Wind Spd']].interpolate(method='linear')
-
-    # Using linear regression to fill missing data in NO2 column
-    linearModel = LinearRegression()
-    dataFrame = dataFrame.copy()
-    nanMask = dataFrame[['NO2']].isna()
-    nanMask = nanMask['NO2']
-
-    xTrain = dataFrame.loc[~nanMask,['NOx']]
-    yTrain = dataFrame.loc[~nanMask,['NO2']]
-
-    linearModel.fit(xTrain, yTrain)
-
-    xTest = dataFrame.loc[nanMask, ['NOx']]
-    yTest = linearModel.predict(xTest)
-    dataFrame.loc[nanMask,['NO2']] = yTest
 
     #Fix gap in time index
     dataFrame = dataFrame.resample('H').interpolate(method='linear')
 
     #Create data frames then fit to SARIMA model 
-    len = 120
+    len = 240
     step = 48
     predict = list()
     dataFrame = dataFrame.tail(len)
